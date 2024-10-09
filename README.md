@@ -1,1 +1,10 @@
 # Pathfinding Starter Code
+
+I decided to use two functions to get the random path from start to exit while hitting the target in between. The first function is called get_random_path() and the second function is called get_middle_path. 
+The middle path method takes in as parameters the graph that we are in, a start node and an end node. This basically contains a list that is the path and a while loop that makes sure the current index is not the end node. Inside the while loop we get the adjacency list of the current node and pick what of the neighbors in the list to be the next node. I also have a while loop inside the main loop that prevents the next node from end node before it gets to the target just so it's a little bit shorter. I wanted to make the random path a little shorter by also making it so the current node couldn’t be the start node but it resulted in an infinite loop in some graphs. I also noticed that the player would sometimes get stuck just going back and forth between nodes again and again so I decided to add another while that adds a restriction of not going right back to the last node it was at and choosing the forward path. 
+Inside the random path funcion I initialize which graph the player is on and the target index. Then the get middle path function is called twice. First time the function gets called the starting node index and target node index are passed in and the method creates a path between the two. The second time the method is called target index and end node index is passed in and a path is made for that. Then they are conjoined to make one big path. 
+
+The statistic I decided to add to the scoreboard is the time it takes to get to the end node. I thought that was a fun comparison between the different players/paths getting the visual second representation of which one is faster. I added a time played object in the player_object class and incremented it as well as reset in there. For the most part it was modeled after the code already in place for the distance statistic. 
+
+Note: I added the three graphs I created as the first three graphs in graphs_data. 
+
