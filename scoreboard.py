@@ -12,6 +12,7 @@ class Scoreboard:
     player_excess_distance_display = []
     player_path_display = []
     player_time_played_display = []
+    winner_label = None
 
     def __init__(self, batch, group):
         self.batch = batch
@@ -61,6 +62,14 @@ class Scoreboard:
                                     font_size=self.font_size, batch=batch, group=group, color=player[2][colors.TEXT_INDEX])
             self.player_time_played_display.append((time_played_label, player))
 
+            self.winner_label = pyglet.text.Label("Winner: N/A", 
+                                              x=0, y=0, 
+                                              font_name='Arial', 
+                                              font_size=self.font_size, 
+                                              batch=batch, group=group, 
+                                              color=(255, 215, 0, 255))
+
+
     def update_elements_locations(self):
         self.distance_to_exit_label.x = config_data.window_width - self.stat_width
         self.distance_to_exit_label.y = config_data.window_height - self.stat_height;
@@ -79,6 +88,10 @@ class Scoreboard:
         for index, (display_element, player) in enumerate(self.player_time_played_display):
             display_element.x = config_data.window_width - self.stat_width
             display_element.y = config_data.window_height - self.base_height_offset - self.stat_height * 6 - self.stat_height * (index * self.number_of_stats)
+
+        self.winner_label.x = config_data.window_width - self.stat_width
+        self.winner_label.y = self.distance_to_exit_label.y - self.stat_height  # Adjust the Y coordinate
+
 
     def update_paths(self):
         for index in range(len(config_data.player_data)):
@@ -116,9 +129,24 @@ class Scoreboard:
                     time_played = player_object.time_played  
                     display_element.text = "Time Played: " + str(int(time_played)) + "s"
 
+    def determine_winner(self):
+        min_distance = float('inf')
+        winner = None
+        for player_object in global_game_data.player_objects:
+            if player_object.distance_traveled < min_distance:
+                min_distance = player_object.distance_traveled
+                winner = player_object.player_config_data[0]  # Player's name
+        return winner
+
+    def update_winner(self):
+        winner = self.determine_winner()
+        self.winner_label.text = "Winner: " + winner
+
+    
     def update_scoreboard(self):
         self.update_elements_locations()
         self.update_paths()
         self.update_distance_to_exit()
         self.update_distance_traveled()
         self.update_time_played()
+        self.update_winner()
