@@ -64,32 +64,21 @@ def allPermutations(n):
     all_permutations = []
     largest_mobile_index = -30
     count = 0;
+    all_permutations.append(allOrderedNums.copy())
+    #print(f"All Ordered Nums: {allOrderedNums}, directions: {directions}")
 
-    print(f"All Ordered Nums: {allOrderedNums}, directions: {directions}")
-
-    while largest_mobile_index != -1 and count < 5:
+    while largest_mobile_index != -1:
         largest_mobile_index = findLargestMobileVariable(n, allOrderedNums, directions)
         mobile_value = allOrderedNums[largest_mobile_index]
-        # Print the largest mobile index at each stage
-        print(f"Largest mobile index at this stage: {largest_mobile_index}")
-        
-        # Check if the largest mobile index is valid
+
         if largest_mobile_index == -1:
             break
         
-        # Add current permutation to the list
-        all_permutations.append(allOrderedNums.copy())
-        print(f"Current permutation: {allOrderedNums}, directions: {directions}")
-
-        # Swap and update directions
         StepThreeSwap(allOrderedNums, directions, largest_mobile_index)
-        print(f"After StepThreeSwap: {allOrderedNums}, directions: {directions}")
-        
         
         directions = StepFourSwitch(allOrderedNums, directions, mobile_value)
-        print(f"After StepFourSwitch: {allOrderedNums}, directions: {directions}")
         
-        # Increment count to limit to 5 permutations
-        count += 1
+        all_permutations.append(allOrderedNums.copy())
+        
 
     return all_permutations

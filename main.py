@@ -54,6 +54,7 @@ def is_hamiltonian_cycle(graph, path):
 
 for index, graph in enumerate(graph_data):
     print(f"Checking graph {index}:")
+
     if has_hamiltonian_cycle(graph):
         print(f"Graph {index} has a Hamiltonian cycle.")
         hamiltonian_cycles = find_hamiltonian_cycles(graph)
@@ -61,5 +62,5 @@ for index, graph in enumerate(graph_data):
     else:
         print(f"Graph {index} does not have a Hamiltonian cycle.")
 
-print(has_hamiltonian_cycle(graph))
-print(find_hamiltonian_cycles(graph))
+#print(has_hamiltonian_cycle(graph))
+#print(find_hamiltonian_cycles(graph))
