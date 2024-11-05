@@ -1,98 +1,65 @@
-import pyglet
-import config_data
-import global_game_data
-import pathing
-from graph_data import graph_data
-from scoreboard import Scoreboard
-from graph import Graph
-from player_object import Player
-import random
+from graph_data_hamiltonian import graph_data
+from permutation import allPermutations
 
-# Create Viewing Window
-window = pyglet.window.Window(width=config_data.window_width, height=config_data.window_height,
-                              caption='RAIK283H Project Code', resizable=True)
+def has_hamiltonian_cycle(graph):
+    start_node = 0
+    end_node = len(graph) - 1
+    stack = [(start_node, set([start_node]), 0)]  # (current_node, visited, path_length)
 
-# Set Path
-pyglet.resource.path = ['./resources']
-pyglet.resource.reindex()
+    while stack:
+        current_node, visited, path_length = stack.pop()
 
-# Set Layers
-main_batch = pyglet.graphics.Batch()
-background = pyglet.graphics.Group(order=0)
-player_layer = pyglet.graphics.Group(order=6)
-text_display_area = pyglet.graphics.Group(order=20)
-button_display_area = pyglet.graphics.Group(order=21)
+        # If we've visited all nodes from 1 to n-1, check if we can return to start
+        if path_length == end_node - 1 and start_node in graph[current_node][1]:
+            return True
 
-# Set Game Data
-for graph in graph_data:
-    if len(graph) >= 3:
-        global_game_data.target_node.append(random.randint(1, len(graph) - 2))
+        # Try visiting each neighbor of the current node
+        for neighbor in graph[current_node][1]:
+            if neighbor != start_node and neighbor != end_node and neighbor not in visited:
+                # Add neighbor to visited nodes and push the new state onto the stack
+                new_visited = visited | {neighbor}
+                stack.append((neighbor, new_visited, path_length + 1))
+
+    return False
+
+    
+def find_hamiltonian_cycles(graph):
+    num_nodes = len(graph) - 2  # exclude start (0) and exit (n)
+    hamiltonian_cycles = []
+
+    # Generate permutations for nodes 1 to n-1
+    for perm in allPermutations(num_nodes):
+        # Create the path from the permutation
+        path = [0] + list(perm) + [len(graph) - 1]
+        
+        # Check if the path is a Hamiltonian cycle
+        if is_hamiltonian_cycle(graph, path):
+            hamiltonian_cycles.append(path)
+
+    return hamiltonian_cycles
+
+
+def is_hamiltonian_cycle(graph, path):
+    # Check if the path visits each node exactly once (excluding start and end) and returns to start
+    visited = set(path[:-1])  # Exclude the exit node
+    if len(visited) != len(path) - 2:  # Exclude start and exit
+        return False
+    # Check if path connects correctly (adjacency)
+    for i in range(len(path) - 1):
+        if path[i + 1] not in graph[path[i]][1]:
+            return False
+    return True
+
+#graph = graph_data[1]
+
+for index, graph in enumerate(graph_data):
+    print(f"Checking graph {index}:")
+    if has_hamiltonian_cycle(graph):
+        print(f"Graph {index} has a Hamiltonian cycle.")
+        hamiltonian_cycles = find_hamiltonian_cycles(graph)
+        print(f"Hamiltonian cycles in graph {index}: {hamiltonian_cycles}")
     else:
-        global_game_data.target_node.append(0)
+        print(f"Graph {index} does not have a Hamiltonian cycle.")
 
-# Define Game Objects
-scoreboard = Scoreboard(main_batch, text_display_area)
-graph = Graph(main_batch)
-for player_index, player in enumerate(config_data.player_data):
-    global_game_data.player_objects.append(Player(player, player_index, main_batch, player_layer))
-
-new_graph_button = pyglet.gui.widgets.PushButton(160, 20,
-                                                 pressed=pyglet.resource.image('new_graph_pressed.png'),
-                                                 depressed=pyglet.resource.image('new_graph.png'),
-                                                 hover=pyglet.resource.image('new_graph.png'),
-                                                 batch=main_batch, group=button_display_area)
-quit_button = pyglet.gui.widgets.PushButton(20, 20,
-                                            pressed=pyglet.resource.image('button_quit_pressed.png'),
-                                            depressed=pyglet.resource.image('button_quit_normal.png'),
-                                            hover=pyglet.resource.image('button_quit_normal.png'), batch=main_batch,
-                                            group=button_display_area)
-
-
-def update(change_in_time):
-    scoreboard.update_scoreboard()
-    graph.update_graph()
-    for player_object in global_game_data.player_objects:
-        player_object.update(change_in_time)
-
-
-@window.event
-def on_resize(width, height):
-    config_data.window_height = height
-    config_data.window_width = width
-
-
-@window.event
-def on_mouse_press(x, y, button, modifiers):
-    if new_graph_button.aabb[0] <= x <= new_graph_button.aabb[2] and new_graph_button.aabb[1] <= y <= \
-            new_graph_button.aabb[3]:
-        new_graph_button.value = True
-        change_graph()
-    if quit_button.aabb[0] <= x <= quit_button.aabb[2] and quit_button.aabb[1] <= y <= quit_button.aabb[3]:
-        window.close()
-
-
-@window.event
-def on_mouse_release(x, y, button, modifiers):
-    new_graph_button.value = False
-
-
-@window.event
-def on_draw():
-    window.clear()
-    main_batch.draw()
-
-
-def change_graph():
-    global_game_data.current_graph_index += 1
-    if global_game_data.current_graph_index >= len(graph_data):
-        global_game_data.current_graph_index = 0
-    for player_object in global_game_data.player_objects:
-        player_object.reset_player()
-    global_game_data.current_player_index = 0
-    graph.set_up_graph()
-    pathing.set_current_graph_paths()
-
-
-if __name__ == '__main__':
-    pyglet.clock.schedule_interval(update, 1 / 120.0)
-    pyglet.app.run()
+print(has_hamiltonian_cycle(graph))
+print(find_hamiltonian_cycles(graph))
