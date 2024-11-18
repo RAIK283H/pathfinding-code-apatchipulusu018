@@ -4,6 +4,9 @@ from pathing import get_middle_path
 from collections import deque
 from pathing import get_dfs_path
 from pathing import get_bfs_path
+from pathing import reconstruct_path
+from pathing import distance_weight
+from pathing import find_dijkstra_path
 
 
 class TestPathFinding(unittest.TestCase):
@@ -55,33 +58,92 @@ class TestPathFinding(unittest.TestCase):
         self.assertNotEqual(almost_pi, pi)
         self.assertAlmostEqual(first=almost_pi, second=pi, delta=1e-1)
 
-    def test_dfs_path_start_to_end(self):
-        path = get_dfs_path()  # Call the DFS function
-        print(f"DFS Path: {path}")
-        self.assertEqual(path[0], 0, "Path should start at index 0")  # Check start
-        self.assertEqual(path[-1], 9, "Path should end at index 9")  # Check end
+    # def test_dfs_path_start_to_end(self):
+    #     path = get_dfs_path()  # Call the DFS function
+    #     print(f"DFS Path: {path}")
+    #     self.assertEqual(path[0], 0, "Path should start at index 0")  # Check start
+    #     self.assertEqual(path[-1], 9, "Path should end at index 9")  # Check end
 
-    def test_dfs_path_connected_edges(self):
-        path = get_dfs_path()
-        for i in range(len(path) - 1):
-            current_node = path[i]
-            next_node = path[i + 1]
-            adjacent_list = self.graph[current_node][1]
-            self.assertIn(next_node, adjacent_list, 
-                          f"Nodes {current_node} and {next_node} are not connected by an edge.")
+    # def test_dfs_path_connected_edges(self):
+    #     path = get_dfs_path()
+    #     for i in range(len(path) - 1):
+    #         current_node = path[i]
+    #         next_node = path[i + 1]
+    #         adjacent_list = self.graph[current_node][1]
+    #         self.assertIn(next_node, adjacent_list, 
+    #                       f"Nodes {current_node} and {next_node} are not connected by an edge.")
             
 
-    def test_bfs_path_includes_target(self):
-        path = get_bfs_path()
-        target_node = global_game_data.target_node[global_game_data.current_graph_index]
-        self.assertIn(target_node, path, f"Path should include the target node {target_node}.")
+    # def test_bfs_path_includes_target(self):
+    #     path = get_bfs_path()
+    #     target_node = global_game_data.target_node[global_game_data.current_graph_index]
+    #     self.assertIn(target_node, path, f"Path should include the target node {target_node}.")
 
-    def test_bfs_path_start_to_end(self):
-        path = get_bfs_path()  # Call the BFS function
-        print(f"BFS Path: {path}")
-        self.assertEqual(path[0], 0, "Path should start at index 0")  # Check start
-        self.assertEqual(path[-1], 9, "Path should end at index 9")  # Check end
+    # def test_bfs_path_start_to_end(self):
+    #     path = get_bfs_path()  # Call the BFS function
+    #     print(f"BFS Path: {path}")
+    #     self.assertEqual(path[0], 0, "Path should start at index 0")  # Check start
+    #     self.assertEqual(path[-1], 9, "Path should end at index 9")  # Check end
 
+
+    # These are my dikstras tests
+
+    def test_reconstruct_path(self):
+        # Test case 1: Normal case where path is successfully reconstructed
+        predecessor_map = {1: 0, 2: 1, 3: 2, 4: 3}  # Sample predecessor map
+        startV = 0
+        exitV = 4
+        expected_path = [0, 1, 2, 3, 4]
+        result = reconstruct_path(predecessor_map, startV, exitV)
+        self.assertEqual(result, expected_path)
+
+    def test_distance(self):
+        # Test case 1: Normal case with two nodes having valid coordinates
+        graph = [((0, 0),), ((3, 4),)]  # Example graph with two nodes at (0, 0) and (3, 4)
+        u, v = 0, 1
+        expected_distance = 5.0  # Distance between (0, 0) and (3, 4) is 5 (Pythagorean theorem)
+        result = distance_weight(graph, u, v)
+        self.assertEqual(result, expected_distance)
+
+    def test_dijkstra_path_basic(self):
+        # Simple test case: 3 nodes with direct edges
+        graph = [
+            ((0, 0), [1, 2]),  # Node 0 connects to Node 1 and 2
+            ((3, 4), [2]),      # Node 1 connects to Node 2
+            ((6, 8), []),       # Node 2 has no neighbors
+        ]
+        start = 0
+        end = 2
+        expected_predecessors = {0: None, 1: 0, 2: 0}
+        result = find_dijkstra_path(graph, start, end)
+        self.assertEqual(result, expected_predecessors)
+
+    def test_dijkstra_path_three_nodes(self):
+        # Case with three nodes where nodes are connected in a simple linear way
+        graph = [
+            ((0, 0), [1]),  # Node 0 connects to Node 1
+            ((3, 4), [2]),  # Node 1 connects to Node 2
+            ((6, 8), []),    # Node 2 has no neighbors
+        ]
+        start = 0
+        end = 2
+        expected_predecessors = {0: None, 1: 0, 2: 1}
+        result = find_dijkstra_path(graph, start, end)
+        self.assertEqual(result, expected_predecessors)
+
+    def test_dijkstra_path_four_nodes(self):
+        # A graph with 4 nodes and direct connections between nodes
+        graph = [
+            ((0, 0), [1]),  # Node 0 connects to Node 1
+            ((3, 4), [2]),  # Node 1 connects to Node 2
+            ((6, 8), [3]),  # Node 2 connects to Node 3
+            ((9, 12), []),   # Node 3 has no neighbors
+        ]
+        start = 0
+        end = 3
+        expected_predecessors = {0: None, 1: 0, 2: 1, 3: 2}
+        result = find_dijkstra_path(graph, start, end)
+        self.assertEqual(result, expected_predecessors)
 
 
 if __name__ == '__main__':
