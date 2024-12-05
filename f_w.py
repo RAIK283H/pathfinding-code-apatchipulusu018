@@ -30,20 +30,50 @@ def FWSlidesAlgorithm(matrix):
 
     return dist, parent
 
+def floyd_warshall(matrix):
+    # Number of vertices in the graph
+    n = len(matrix)
+    
+    # Initialize the distance matrix with infinity
+    dist = [[float('inf')] * n for _ in range(n)]
+    parent = [[None] * n for _ in range(n)]
+    
+    # Set the distance from each vertex to itself as 0
+    for i in range(n):
+        dist[i][i] = 0
+        parent[i][i] = None
+    
+    # Set the distance for edges present in the graph
+    for u in range(n):
+        for v in range(n):
+            if matrix[u][v] != 0:  # Assumes 0 indicates no edge
+                dist[u][v] = matrix[u][v]
+                parent[u][v] = u 
+    
+    # Floyd-Warshall algorithm
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if dist[i][j] > dist[i][k] + dist[k][j]:
+                    dist[i][j] = dist[i][k] + dist[k][j]
+                    parent[i][j] = parent[k][j]
+    
+    return dist, parent
+
 def reconstruct_path(parent, u, v):
-    if parent[u][v] is None:
-        return None  # No path exists
-    path = [u]
-    while u != v:
-        u = parent[u][v]
-        path.append(u)
-    return path
+    path = []
+    current_node = v
+
+    assert v in parent or v == u, "Exit vertex is not reachable from the start vertex."
+
+    while current_node != u:
+        path.append(current_node)
+        assert current_node in parent, f"Path is broken: No predecessor for node {current_node}."
+        current_node = parent[current_node]
+    path.append(u)  # Add the start node at the end
+    return path[::-1]
 
 
-def FWBonus(graph):
-    arg = 5
-
-    return arg
 
 def distance_weight(graph, u,v):
     assert 0 <= u < len(graph), f"Node {u} is out of range for the graph."

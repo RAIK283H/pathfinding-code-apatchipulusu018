@@ -1,11 +1,11 @@
 import math
 import unittest
-from f_w import adjacency_list_to_matrix_with_weights
+from f_w import FWSlidesAlgorithm, adjacency_list_to_matrix_with_weights, floyd_warshall
 from pathing import get_middle_path
 from collections import deque
 from pathing import get_dfs_path
 from pathing import get_bfs_path
-from pathing import reconstruct_path
+from f_w import reconstruct_path
 from pathing import distance_weight
 from pathing import find_dijkstra_path
 
@@ -26,22 +26,48 @@ class TestPathFinding(unittest.TestCase):
             [(500, 0), [7, 8]]
         ]
         self.matrix = [
-            [0, 3, float('inf'), float('inf')],
-            [float('inf'), 0, 1, float('inf')],
-            [float('inf'), float('inf'), 0, 2],
-            [float('inf'), float('inf'), float('inf'), 0]
+            [0, 3, float('inf')],
+            [float('inf'), 0, 1],
+            [4, float('inf'), 0]
         ]
+        
+        # Expected shortest path distances
         self.expected_dist = [
-            [0, 3, 4, 6],
-            [float('inf'), 0, 1, 3],
-            [float('inf'), float('inf'), 0, 2],
-            [float('inf'), float('inf'), float('inf'), 0]
+            [0, 3, 4],
+            [5, 0, 1],
+            [4, 7, 0]
         ]
+        
+        # Expected parent matrix
         self.expected_parent = [
-            [None, 0, 1, 1],
-            [None, None, 1, 2],
-            [None, None, None, 2],
-            [None, None, None, None]
+            [0, 0, 1],
+            [2, 1, 1],
+            [2, 0, 2]
+        ]
+
+        self.parent1 = [
+            [0, 0, 1],
+            [2, 1, 1],
+            [2, 0, 2]
+        ]
+
+        self.matrix2 = [
+            [0, 1, float('inf'), float('inf')],
+            [float('inf'), 0, -2, float('inf')],
+            [float('inf'), float('inf'), 0, 2],
+            [-1, float('inf'), float('inf'), 0]
+        ]
+        self.expected_dist2 = [
+            [0, 1, -1, 1],
+            [float('inf'), 0, -2, 0],
+            [-1, 0, 0, 2],
+            [-1, 0, -2, 0]
+        ]
+        self.expected_parent2 = [
+            [0, 0, 1, 2],
+            [None, 1, 1, 2],
+            [3, 3, 2, 2],
+            [3, 3, 1, 3]
         ]
 
         global global_game_data
@@ -199,5 +225,107 @@ class TestPathFinding(unittest.TestCase):
                         msg=f"Value mismatch at ({i}, {j}): expected {expected_matrix[i][j]}, got {actual_matrix[i][j]}"
                     )
 
+    def test_fwslides_algorithm(self):
+        # Run the FWSlidesAlgorithm
+        dist, parent = FWSlidesAlgorithm(self.matrix)
+        
+        # Test that the distance matrix is correct
+        for i in range(len(self.expected_dist)):
+            for j in range(len(self.expected_dist)):
+                if self.expected_dist[i][j] == float('inf'):
+                    self.assertTrue(math.isinf(dist[i][j]), f"Expected infinity at ({i}, {j})")
+                else:
+                    self.assertAlmostEqual(dist[i][j], self.expected_dist[i][j], places=2, 
+                                           msg=f"Distance mismatch at ({i}, {j})")
+        
+        # Test that the parent matrix is correct
+        for i in range(len(self.expected_parent)):
+            for j in range(len(self.expected_parent)):
+                self.assertEqual(parent[i][j], self.expected_parent[i][j], 
+                                 f"Parent mismatch at ({i}, {j})")
+    def test_fwslides_algorithm2(self):
+        """Test the Floyd-Warshall implementation."""
+        dist, parent = FWSlidesAlgorithm(self.matrix)
+        
+        # Assert distance matrix
+        self.assertEqual(dist, self.expected_dist, "Distance matrix is incorrect.")
+        
+        # Assert parent matrix
+        self.assertEqual(parent, self.expected_parent, "Parent matrix is incorrect.")
+
+    def test_single_path(self):
+        # Graph: 0 → 1 → 2
+        matrix = [
+            [0, 3, 0],
+            [0, 0, 4],
+            [0, 0, 0]
+        ]
+        dist, parent = floyd_warshall(matrix)
+        
+        # Check shortest path distances
+        self.assertEqual(dist[0][1], 3)  # Distance from 0 to 1
+        self.assertEqual(dist[1][2], 4)  # Distance from 1 to 2
+        self.assertEqual(dist[0][2], 7)  # Distance from 0 to 2
+        
+        # Check if the parent matrix reflects the correct path
+        self.assertEqual(parent[0][1], 0)  # Parent of 1 is 0
+        self.assertEqual(parent[1][2], 1)  # Parent of 2 is 1
+
+    def test_multiple_paths(self):
+        # Graph with multiple paths
+        matrix = [
+            [0, 3, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 7],
+            [0, 0, 0, 0]
+        ]
+        dist, parent = floyd_warshall(matrix)
+        
+        # Check shortest path distances
+        self.assertEqual(dist[0][2], 4)  # Path from 0 → 1 → 2
+        self.assertEqual(dist[0][3], 11) # Path from 0 → 1 → 2 → 3
+        
+        # Check if the parent matrix reflects the correct paths
+        self.assertEqual(parent[0][2], 1)  # Parent of 2 is 1
+        self.assertEqual(parent[0][3], 2)  # Parent of 3 is 2
+
+    
+    def test_reconstruct_path(self):
+        # Example parent matrix that might be generated by Floyd-Warshall
+        parent = {
+            0: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+            1: {2: 1, 3: 1, 4: 1, 5: 1},
+            2: {3: 2, 4: 2, 5: 2},
+            3: {4: 3, 5: 3},
+            4: {5: 4},
+            5: {}
+        }
+        
+        # Test 1: Path from vertex 0 to vertex 5 (should return [0, 1, 2, 5])
+        result = reconstruct_path(parent, 0, 5)
+        self.assertEqual(result, [0, 1, 2, 5])
+
+        # Test 2: Path from vertex 1 to vertex 4 (should return [1, 2, 4])
+        result = reconstruct_path(parent, 1, 4)
+        self.assertEqual(result, [1, 2, 4])
+
+        # Test 3: Path from vertex 2 to vertex 3 (should return [2, 3])
+        result = reconstruct_path(parent, 2, 3)
+        self.assertEqual(result, [2, 3])
+
+        # Test 4: Path from vertex 0 to vertex 4 (should return [0, 1, 2, 4])
+        result = reconstruct_path(parent, 0, 4)
+        self.assertEqual(result, [0, 1, 2, 4])
+
+        # Test 5: Path from vertex 5 to vertex 5 (should return [5] because it's the same vertex)
+        result = reconstruct_path(parent, 5, 5)
+        self.assertEqual(result, [5])
+
+        # Test 6: No path between 4 and 1 (should return None because there's no path)
+        result = reconstruct_path(parent, 4, 1)
+        self.assertEqual(result, None)
+
+    
+    
 if __name__ == '__main__':
     unittest.main()
