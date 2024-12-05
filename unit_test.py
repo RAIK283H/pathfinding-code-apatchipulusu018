@@ -1,5 +1,6 @@
 import math
 import unittest
+from f_w import adjacency_list_to_matrix_with_weights
 from pathing import get_middle_path
 from collections import deque
 from pathing import get_dfs_path
@@ -23,6 +24,24 @@ class TestPathFinding(unittest.TestCase):
             [(400, 0), [5, 9]],
             [(300, 100), [6, 9]],
             [(500, 0), [7, 8]]
+        ]
+        self.matrix = [
+            [0, 3, float('inf'), float('inf')],
+            [float('inf'), 0, 1, float('inf')],
+            [float('inf'), float('inf'), 0, 2],
+            [float('inf'), float('inf'), float('inf'), 0]
+        ]
+        self.expected_dist = [
+            [0, 3, 4, 6],
+            [float('inf'), 0, 1, 3],
+            [float('inf'), float('inf'), 0, 2],
+            [float('inf'), float('inf'), float('inf'), 0]
+        ]
+        self.expected_parent = [
+            [None, 0, 1, 1],
+            [None, None, 1, 2],
+            [None, None, None, 2],
+            [None, None, None, None]
         ]
 
         global global_game_data
@@ -145,6 +164,40 @@ class TestPathFinding(unittest.TestCase):
         result = find_dijkstra_path(graph, start, end)
         self.assertEqual(result, expected_predecessors)
 
+
+###THE FOLLOWING TESTS ARE TESTING FLOYD-WARSHALL
+    def test_adjacency_list_to_matrix_with_weights(self):
+        # Test graph: Small example with known distances
+        test_graph = [
+            [(0, 0), [1, 2]],
+            [(3, 0), [0, 3]],
+            [(0, 4), [0]],
+            [(3, 4), [1]]
+        ]
+        
+        # Expected adjacency matrix (rounded for clarity)
+        expected_matrix = [
+            [0, 3.0, 4.0, float('inf')],
+            [3.0, 0, float('inf'), 4.0],
+            [4.0, float('inf'), 0, float('inf')],
+            [float('inf'), 4.0, float('inf'), 0]
+        ]
+        
+        # Get the adjacency matrix from the function
+        actual_matrix = adjacency_list_to_matrix_with_weights(test_graph)
+        
+        # Check the values
+        for i in range(len(expected_matrix)):
+            for j in range(len(expected_matrix)):
+                if expected_matrix[i][j] == float('inf'):
+                    self.assertTrue(math.isinf(actual_matrix[i][j]), f"Expected infinity at ({i}, {j})")
+                else:
+                    self.assertAlmostEqual(
+                        actual_matrix[i][j],
+                        expected_matrix[i][j],
+                        places=2,
+                        msg=f"Value mismatch at ({i}, {j}): expected {expected_matrix[i][j]}, got {actual_matrix[i][j]}"
+                    )
 
 if __name__ == '__main__':
     unittest.main()
