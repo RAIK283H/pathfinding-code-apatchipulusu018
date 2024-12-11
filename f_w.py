@@ -41,7 +41,7 @@ def floyd_warshall(matrix):
     # Set the distance from each vertex to itself as 0
     for i in range(n):
         dist[i][i] = 0
-        parent[i][i] = None
+        parent[i][i] = i
     
     # Set the distance for edges present in the graph
     for u in range(n):
@@ -60,18 +60,17 @@ def floyd_warshall(matrix):
     
     return dist, parent
 
-def reconstruct_path(parent, u, v):
-    path = []
-    current_node = v
+def reconstructing_path(u, v, prev):
+    # If there is no path, return an empty list
+    if prev[u][v] is None:
+        return []
+    
+    path = [v]
+    while u != v:
+        v = prev[u][v]
+        path.insert(0, v)  # Prepend to the path
+    return path
 
-    assert v in parent or v == u, "Exit vertex is not reachable from the start vertex."
-
-    while current_node != u:
-        path.append(current_node)
-        assert current_node in parent, f"Path is broken: No predecessor for node {current_node}."
-        current_node = parent[current_node]
-    path.append(u)  # Add the start node at the end
-    return path[::-1]
 
 
 
@@ -98,3 +97,29 @@ def adjacency_list_to_matrix_with_weights(graph):
             matrix[node_index][neighbor] = weight
 
     return matrix
+
+def main():
+    # Example graph data (coordinates and neighbor indices)
+    # Each node has a (coordinates, list of neighbors)
+    graph = [
+        ((0, 0), [1, 2]),  # Node 0 at (0, 0) connects to Node 1 and Node 2
+        ((1, 0), [0, 2]),  # Node 1 at (1, 0) connects to Node 0 and Node 2
+        ((0, 1), [0, 1])   # Node 2 at (0, 1) connects to Node 0 and Node 1
+    ]
+    
+    # Step 1: Convert the adjacency list to a weighted adjacency matrix
+    matrix = adjacency_list_to_matrix_with_weights(graph)
+   
+    # Step 2: Run the Floyd-Warshall algorithm to get distances and parent matrix
+    dist, parent = floyd_warshall(matrix)
+    
+    # Step 3: Reconstruct the path from a given start (u) to end (v)
+    u, v = 0, 2  # Example: Find path from vertex 0 to vertex 2
+    path = reconstructing_path(u, v, parent)
+    
+    # Step 4: Print the results
+    print(f"Shortest path from vertex {u} to vertex {v}: {path}")
+    print(f"Distance: {dist[u][v]}")
+
+if __name__ == "__main__":
+    main()

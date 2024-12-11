@@ -1,3 +1,4 @@
+from f_w import adjacency_list_to_matrix_with_weights, floyd_warshall, reconstructing_path
 from graph_data_hamiltonian import graph_data
 from permutation import allPermutations
 
@@ -52,15 +53,41 @@ def is_hamiltonian_cycle(graph, path):
 
 #graph = graph_data[1]
 
-for index, graph in enumerate(graph_data):
-    print(f"Checking graph {index}:")
+# for index, graph in enumerate(graph_data):
+#     print(f"Checking graph {index}:")
 
-    if has_hamiltonian_cycle(graph):
-        print(f"Graph {index} has a Hamiltonian cycle.")
-        hamiltonian_cycles = find_hamiltonian_cycles(graph)
-        print(f"Hamiltonian cycles in graph {index}: {hamiltonian_cycles}")
-    else:
-        print(f"Graph {index} does not have a Hamiltonian cycle.")
+#     if has_hamiltonian_cycle(graph):
+#         print(f"Graph {index} has a Hamiltonian cycle.")
+#         hamiltonian_cycles = find_hamiltonian_cycles(graph)
+#         print(f"Hamiltonian cycles in graph {index}: {hamiltonian_cycles}")
+#     else:
+#         print(f"Graph {index} does not have a Hamiltonian cycle.")
 
 #print(has_hamiltonian_cycle(graph))
 #print(find_hamiltonian_cycles(graph))
+
+def main():
+    # Example graph data (coordinates and neighbor indices)
+    # Each node has a (coordinates, list of neighbors)
+    graph = [
+        ((0, 0), [1, 2]),  # Node 0 at (0, 0) connects to Node 1 and Node 2
+        ((1, 0), [0, 2]),  # Node 1 at (1, 0) connects to Node 0 and Node 2
+        ((0, 1), [0, 1])   # Node 2 at (0, 1) connects to Node 0 and Node 1
+    ]
+    
+    # Step 1: Convert the adjacency list to a weighted adjacency matrix
+    matrix = adjacency_list_to_matrix_with_weights(graph)
+   
+    # Step 2: Run the Floyd-Warshall algorithm to get distances and parent matrix
+    dist, parent = floyd_warshall(matrix)
+    
+    # Step 3: Reconstruct the path from a given start (u) to end (v)
+    u, v = 0, 2  # Example: Find path from vertex 0 to vertex 2
+    path = reconstructing_path(u, v, parent)
+    
+    # Step 4: Print the results
+    print(f"Shortest path from vertex {u} to vertex {v}: {path}")
+    print(f"Distance: {dist[u][v]}")
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,5 @@
 import math
+from f_w import adjacency_list_to_matrix_with_weights, floyd_warshall, reconstructing_path
 import graph_data
 import global_game_data
 from numpy import random
@@ -7,10 +8,11 @@ import heapq
 
 def set_current_graph_paths():
     global_game_data.graph_paths.clear()
-    global_game_data.graph_paths.append(get_test_path())
+    #global_game_data.graph_paths.append(get_test_path())
     #global_game_data.graph_paths.append(get_random_path())
     #global_game_data.graph_paths.append(get_dfs_path())
     #global_game_data.graph_paths.append(get_bfs_path())
+    global_game_data.graph_paths.append(get_Floyd_Warshall_path())
     global_game_data.graph_paths.append(get_dijkstra_path())
 
 
@@ -280,3 +282,36 @@ def reconstruct_path(predecessor_map, startV, exitV):
         current_node = predecessor_map[current_node]
     path.append(startV)  # Add the start node at the end
     return path[::-1]
+
+def get_Floyd_Warshall_path():
+    graph = graph_data.graph_data[global_game_data.current_graph_index]
+    index_start = 0
+    target_index = global_game_data.target_node[global_game_data.current_graph_index]
+
+    start_to_target = find_Floyd_Warshall_path(graph,index_start,target_index)
+    target_to_end = find_Floyd_Warshall_path(graph,target_index, len(graph)-1)
+
+    
+
+    # # 1. Path one should start at index_start and end at target_index
+    # assert start_to_target[0] == index_start, f"Path one does not start at the correct start node: {start_to_target[0]}"
+    # assert target_to_end[-1] == target_index, f"Path one does not end at the target node: {path_one[-1]}"
+
+    # # 2. Path two should start at target_index and end at the last node
+    # assert path_two[0] == target_index, f"Path two does not start at the target node: {path_two[0]}"
+    # assert path_two[-1] == len(graph) - 1, f"Path two does not end at the last node: {path_two[-1]}"
+
+    target_to_end.remove(target_index)
+    complete_path = start_to_target + target_to_end
+
+    # 3. Complete path should start at index_start and end at the last node
+    # assert complete_path[0] == index_start, f"Complete path does not start at the correct start node: {complete_path[0]}"
+    # assert complete_path[-1] == len(graph) - 1, f"Complete path does not end at the last node: {complete_path[-1]}"
+
+    return complete_path
+
+def find_Floyd_Warshall_path(graph, index_start, end):
+    matrix = adjacency_list_to_matrix_with_weights(graph)
+    dist, parent = floyd_warshall(matrix)
+    shortest_path = reconstructing_path(index_start, end, parent)
+    return shortest_path
